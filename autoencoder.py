@@ -42,9 +42,9 @@ print(len(data))
 print(len(parmu_data))
 # model
 
-n_epochs = 0
+n_epochs = 10
 n_examples = 475
-batch_size = 2
+batch_size = 1
 
 data_ph = tf.placeholder('float', [None, 112*112], name = 'data_ph')
 output_ph = tf.placeholder('float', [None, 112*112], name = 'output_ph')
@@ -180,8 +180,8 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 
-saver = tf.train.import_meta_graph("E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt.meta")
-saver.restore(sess, tf.train.latest_checkpoint('E:/workspace_py/saved_models/face_swap/autoencoder/'))
+# saver = tf.train.import_meta_graph("E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt.meta")
+# saver.restore(sess, tf.train.latest_checkpoint('E:/workspace_py/saved_models/face_swap/autoencoder/'))
 
 errA = 999999 # infinity
 errB = 999999
@@ -201,8 +201,8 @@ for epoch in range(n_epochs):
 		_, errB = sess.run([trainB, lossB], feed_dict={data_ph: epoch_x, output_ph: epoch_y, learning_rate: 0.001})
 
 	print("Loss @ epoch ", str(epoch), " = ", errA, " and ", errB)
-	if (epoch + 1) % 50 == 0:
-		save_path = saver.save(sess, "E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt")
+	# if (epoch + 1) % 50 == 0:
+		# save_path = saver.save(sess, "E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt")
 
 # saver = tf.train.Saver()
 
