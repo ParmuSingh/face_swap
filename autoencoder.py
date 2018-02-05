@@ -1,24 +1,22 @@
 '''
 epochs completed: 150 + 50 + 150 + 50 + 100
 
+Please use your path where necessary.
 '''
 
 import tensorflow as tf
 import numpy as np
-# from cv2 import imread, imshow
 from PIL import Image
 
 base_path1 = "E:/workspace_py/datasets/Siraj images/processed/"
 base_path2 = "E:/workspace_py/datasets/Parmu images/"
 
-# base_path = 'E:/Datasets!!/face-swap/face-swap/data/trump'
 data = []
 parmu_data = []
 
+# Getting the data. Data_parmu stores my (subject) images and data stores output faces.
 for i in range(503):
 	path = base_path1 + str(i) + '.png'
-	# path = r'E:/Datasets!!/face-swap/face-swap/data/trump/ \d*.png'
-	# print(path)
 	try:
 		img = Image.open(path)
 		img = np.asarray(img)
@@ -37,44 +35,24 @@ for i in range(503):
 	except:
 		continue
 
-# data = np.reshape(data, [-1, 112*112])
-print(len(data))
-print(len(parmu_data))
-# model
+	
+# Model
 
-n_epochs = 10
+n_epochs = 0
 n_examples = 475
 batch_size = 1
 
 data_ph = tf.placeholder('float', [None, 112*112], name = 'data_ph')
 output_ph = tf.placeholder('float', [None, 112*112], name = 'output_ph')
-learning_rate = tf.placeholder('float', [], name = 'learning_rate_ph')
+learning_rate = tf.placeholder('float', [], name = 'learning_rate_ph') # for variable lr.
 
-def conv2d(x, W):
+def conv2d(x, W): # convolution layer.
 	return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
-# def de_conv2d(x, W, output_shape):
-# 	return tf.nn.conv2d_transpose(x, W, strides=[1, 1, 1, 1], padding  = 'SAME', output_shape=output_shape)
-
-def maxpool2d(x):
+def maxpool2d(x): # max pooling layer.
 	return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-# def unpool(value, name='unpool'): # https://github.com/tensorflow/tensorflow/issues/2169
-#     """N-dimensional version of the unpooling operation from
-#     https://www.robots.ox.ac.uk/~vgg/rg/papers/Dosovitskiy_Learning_to_Generate_2015_CVPR_paper.pdf
-
-#     :param value: A Tensor of shape [b, d0, d1, ..., dn, ch]
-#     :return: A Tensor of shape [b, 2*d0, 2*d1, ..., 2*dn, ch]
-#     """
-#     with tf.name_scope(name) as scope:
-#         sh = value.get_shape().as_list()
-#         dim = len(sh[1:-1])
-#         out = (tf.reshape(value, [-1] + sh[-dim:]))
-#         for i in range(dim, 0, -1):
-#             out = tf.concat(i, [out, tf.zeros_like(out)])
-#         out_size = [-1] + [s * 2 for s in sh[1:-1]] + [sh[-1]]
-#         out = tf.reshape(out, out_size, name=scope)
-#     return out
+# weights and biases:
 weights_encoder = {
 				'w_conv1': tf.Variable(tf.random_normal([5, 5, 1, 32])), # [filter_h, filter_w, in_channels, n_filters]
 				'w_conv2': tf.Variable(tf.random_normal([5, 5, 32, 64])), # [filter_h, filter_w, in_channels, n_filters]
@@ -128,7 +106,7 @@ biases_decoder_B = {
 		# 'ol': tf.Variable(tf.random_normal([256*256]))
 	}
 	
-def encoder(x):
+def encoder(x): # encoder
 	
 	global weights_encoder
 	global biases_encoder
@@ -143,7 +121,7 @@ def encoder(x):
 
 	return ol
 
-def decoder_A(x): # Someone make them de-convolution layers.
+def decoder_A(x): # DecoderA. It generates output faces. Someone make them de-convolution layers.
 	
 	global weights_decoder_A
 	global weights_decoder_A
@@ -157,7 +135,7 @@ def decoder_A(x): # Someone make them de-convolution layers.
 	# hl5 = tf.nn.relu(tf.add(tf.matmul(hl4, weights['hl5']), biases['hl5']), name = 'hl5')
 	# ol = tf.nn.relu(tf.add(tf.matmul(hl1, weights['ol']), biases['ol']), name = 'ol')
 
-def decoder_B(x): # Someone make them de-convolution layers.
+def decoder_B(x): # DecoderB. It generates subject faces. Someone make them de-convolution layers.
 	
 	global weights_decoder_B
 	global biases_decoder_B
@@ -170,7 +148,6 @@ def decoder_B(x): # Someone make them de-convolution layers.
 	return ol
 
 
-# def train_autoencoder():
 lossA = tf.reduce_mean((decoder_A(encoder(data_ph)) - output_ph)**2, name = 'loss')
 lossB = tf.reduce_mean((decoder_B(encoder(data_ph)) - output_ph)**2, name = 'loss')
 trainA = tf.train.AdamOptimizer(learning_rate).minimize(lossA)
@@ -180,8 +157,10 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 
+########################### UN-COMMENT THIS TO RESUME FROM SAVED MODEL.
 # saver = tf.train.import_meta_graph("E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt.meta")
 # saver.restore(sess, tf.train.latest_checkpoint('E:/workspace_py/saved_models/face_swap/autoencoder/'))
+########################### UN-COMMENT THIS TO RESUME FROM SAVED MODEL.
 
 errA = 999999 # infinity
 errB = 999999
@@ -201,10 +180,8 @@ for epoch in range(n_epochs):
 		_, errB = sess.run([trainB, lossB], feed_dict={data_ph: epoch_x, output_ph: epoch_y, learning_rate: 0.001})
 
 	print("Loss @ epoch ", str(epoch), " = ", errA, " and ", errB)
-	# if (epoch + 1) % 50 == 0:
-		# save_path = saver.save(sess, "E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt")
-
-# saver = tf.train.Saver()
+	if (epoch + 1) % 50 == 0:
+		save_path = saver.save(sess, "E:/workspace_py/saved_models/face_swap/autoencoder/autoencoder-1.ckpt")
 
 prediction = sess.run(decoder_A(encoder(data_ph)), feed_dict={data_ph: [parmu_data[0]]})
 print("prediction: ", prediction)
@@ -212,7 +189,6 @@ print("prediction: ", prediction)
 import matplotlib.pyplot as plt
 plt.subplot(1, 2, 1)
 plt.imshow(np.reshape(parmu_data[0], [112, 112]))
-# plt.show()
 plt.subplot(1,2, 2)
 plt.imshow(np.reshape(prediction, [112, 112]))
 plt.show()
@@ -224,7 +200,6 @@ eye_cascade = c.CascadeClassifier('E:\workspace_py\OpenCV Cascades\haarcascades\
 
 
 cap = c.VideoCapture(0)
-# fourcc = c.VideoWriter_fourcc(*'XVID')
 out = c.VideoWriter('output.avi',-1, 5.0, (640,480))
 
 while True:
@@ -242,11 +217,7 @@ while True:
 		img = np.resize(img, [112*112])
 
 		prediction = np.reshape(sess.run(decoder_A(encoder(data_ph)), feed_dict={data_ph: [img]}), [112, 112])
-		# print(prediction)
-		# plt.imshow(prediction)
-		# plt.show()
-		print(face_size[0], face_size[1])
-		# prediction = tf.images.resize_images(prediction, [face_size[0], face_size[1]])
+
 		prediction = c.resize(prediction, (face_size[0], face_size[1]))
 		gray[y:y+h, x:x+w] = prediction
 
@@ -258,7 +229,6 @@ while True:
 	if c.waitKey(1)  == ord('q'):
 		break
 
-#When everything done, release the capture
 cap.release()
 c.destroyAllWindows()
 out.release()
