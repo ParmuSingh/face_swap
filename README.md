@@ -7,3 +7,4 @@ Please see output video. I cannot provide the saved model or the data cause I ca
 
 - Someone please add de-convolution layers.
 - It needs more training and a way more diverse dataset. I'll be trying to upgrade it. For now, I've uploaded this for Siraj Raval's coding challange.
+- It seems like most outputs are the same. I don't know why this is happening. It probably just needs a diverse dataset.
