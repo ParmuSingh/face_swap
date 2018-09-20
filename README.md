@@ -1,5 +1,5 @@
 # face_swap
-face swap like deep fakes.
+face swap for siraj coding challange.
 
 I'm sorry I have put everything in one file. To test, just put n_epochs = 0.
 
